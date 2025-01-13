@@ -3,35 +3,35 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 from django.views import generic
+from rest_framework.generics import *
 from .models import Choice, Question
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from .serializers import QuestionSerializer
+from .serializers import *
+from django.contrib.auth import authenticate
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework import status
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated,AllowAny
 
-
-
-class IndexView(APIView):
-    def get(self, request):
-        latest_questions = Question.objects.order_by('pub_date')[-5]
-        serializer = QuestionSerializer(latest_questions, many=True)
-        return Response(serializer.data)
-
+class IndexView(ListAPIView):
+    permission_classes = [IsAuthenticated]
+    queryset = Question.objects.order_by('-pub_date')[:5]
+    serializer_class = QuestionSerializer
 
 class DetailView(APIView):
-    def get(request,self,pk):
-        question = get_object_or_404(Question,pk=pk)
-        serializer = QuestionSerializer(question)
-        return Response(serializer.data)
-
+    permission_classes = [IsAuthenticated] 
+    queryset = Question.objects.all()
+    serializer_class = QuestionSerializer
 
 
 class ResultsView(APIView):
-    def get(request,self,pk):
-        question = get_object_or_404(Question, pk=pk)
-        serializer = QuestionSerializer(question)
-        return Response(serializer.data)
+    permission_classes = [IsAuthenticated] 
+    queryset = Question.objects.all()
+    serializer_class = QuestionSerializer
 
 class vote(APIView):
+    permission_classes = [IsAuthenticated] 
     def post(self, request, question_id):
         question = get_object_or_404(Question, pk=question_id)
         try:
